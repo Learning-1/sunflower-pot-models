@@ -19,6 +19,7 @@
     const stages = ["Bare soil", "Seed planted", "Sprout", "Leaves", "Bud", "Bloom"];
     const dayMs = 86400000;
     const soilTop = 0.255;
+    const potSpawnForward = 0.4548;
     const wateringTargets = new Map();
     let sharedCan;
     const nowMs = () => Date.now();
@@ -121,7 +122,7 @@
         return operation;
     }
 
-    async function mount(element, id, hostsCan, placement, onMoved, canOrigin) {
+    async function mount(element, id, hostsCan, placement, onMoved, canOrigin, canHome) {
         const scene = BS.Scene.GetInstance();
         await scene.WaitForUnityLoaded();
         const storage = BS.PersistFileBridge;
@@ -352,7 +353,7 @@
             return object;
         }
 
-        const canHome = [0.45, 0.13, 0];
+
         const canColor = [0.18, 0.20, 0.18];
         const canGrip = [0.151, 0.054, 0];
         const canBody = () => cylinder(0.078, 0.094, 0.178, 18);
@@ -725,6 +726,11 @@
         const framePosition = readPosition("position", [0, 1.24, 2]);
         const [frameX, frameY, frameZ] = framePosition;
         const canOrigin = readPosition("can-origin", [frameX - 1.2, frameY - 1.24, frameZ - 0.8]);
+        const canHome = [
+            frameX - 1.48 - canOrigin[0],
+            frameY - soilTop + 0.13 - canOrigin[1],
+            frameZ - potSpawnForward - canOrigin[2]
+        ];
         const defaults = {
             nextId: 1, growthDays: 14,
             frame: { position: framePosition }, pots: {}
@@ -802,7 +808,7 @@
             const [x, frameHeight, z] = next.frame.position;
             const potBaseHeight = frameHeight - soilTop;
             const existing = Object.values(next.pots);
-            const position = [0.48, -0.48, 1.02, -1.02].map(offset => [x + offset, potBaseHeight, z - 0.4548])
+            const position = [0.48, -0.48, 1.02, -1.02].map(offset => [x + offset, potBaseHeight, z - potSpawnForward])
                 .find(candidate => existing.every(pot =>
                     Math.hypot(...pot.position.map((value, i) => value - candidate[i])) >= 0.45));
             if (!position) {
@@ -890,7 +896,7 @@
                             if (!next.pots[id]) return false;
                             Object.assign(next.pots[id], updated);
                             return true;
-                        })), canOrigin);
+                        })), canOrigin, canHome);
                     pots.set(id, pot);
                 }
                 const pot = pots.get(id);
