@@ -799,10 +799,10 @@
         });
         const add = button("Add Flower Pot", () => mutate(next => {
             if (Object.keys(next.pots).length >= 8) { notice = "Garden is full (8 pots)"; return false; }
-            const [x, , z] = next.frame.position;
-            const floor = canOrigin[1];
+            const [x, frameHeight, z] = next.frame.position;
+            const potBaseHeight = frameHeight - soilTop;
             const existing = Object.values(next.pots);
-            const position = [0.48, -0.48, 1.02, -1.02].map(offset => [x + offset, floor, z - 0.15])
+            const position = [0.48, -0.48, 1.02, -1.02].map(offset => [x + offset, potBaseHeight, z - 0.15])
                 .find(candidate => existing.every(pot =>
                     Math.hypot(...pot.position.map((value, i) => value - candidate[i])) >= 0.45));
             if (!position) {
